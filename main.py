@@ -51,13 +51,13 @@ class UserOut(BaseModel):
 class ArticleCreate(BaseModel):
     title: str = Field(..., example="Що таке FastAPI?")
     content: str
-    tags: List[str] = []
-
+    tags: List[str] = Field(default_factory=list) 
+    
 class ArticleOut(ArticleCreate):
     id: int
     author_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
