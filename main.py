@@ -46,7 +46,7 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ArticleCreate(BaseModel):
     title: str = Field(..., example="Що таке FastAPI?")
@@ -112,18 +112,31 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @app.post("/articles", response_model=ArticleOut)
 def create_article(article: ArticleCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    tags_str = ",".join(article.tags)
-    new_article = Article(title=article.title, content=article.content, tags=tags_str, author_id=current_user.id)
-    article.tags = article.tags.split(",")  
+    tags_str = ",".join(article.tags)  
+    new_article = Article(
+        title=article.title,
+        content=article.content,
+        tags=tags_str,
+        author_id=current_user.id
+    )
     db.add(new_article)
     db.commit()
     db.refresh(new_article)
-    return new_article
+    return new_article 
 
 @app.get("/articles", response_model=List[ArticleOut])
 def get_articles(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    article.tags = article.tags.split(",")  
-    return db.query(Article).offset(skip).limit(limit).all()
+    articles = db.query(Article).offset(skip).limit(limit).all()
+    result = []
+    for article in articles:
+        result.append(ArticleOut(
+            id=article.id,
+            title=article.title,
+            content=article.content,
+            tags=article.tags.split(",") if article.tags else [],
+            author_id=article.author_id
+        ))
+    return result
 
 @app.get("/")
 def read_root():
