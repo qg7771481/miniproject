@@ -114,6 +114,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def create_article(article: ArticleCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     tags_str = ",".join(article.tags)
     new_article = Article(title=article.title, content=article.content, tags=tags_str, author_id=current_user.id)
+    article.tags = article.tags.split(",")  
     db.add(new_article)
     db.commit()
     db.refresh(new_article)
@@ -121,6 +122,7 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_db), curren
 
 @app.get("/articles", response_model=List[ArticleOut])
 def get_articles(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    article.tags = article.tags.split(",")  
     return db.query(Article).offset(skip).limit(limit).all()
 
 @app.get("/")
